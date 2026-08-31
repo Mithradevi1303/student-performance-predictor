@@ -1058,4 +1058,5 @@ body::before {
     backdrop-filter: blur(10px);
     box-shadow: var(--shadow-card);
     z-index: 10;
+
 }
