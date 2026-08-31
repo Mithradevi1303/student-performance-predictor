@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="header-icon">🎓</div>
+                <h1>Student Performance Predictor</h1>
+                <p>AI-powered prediction based on study habits</p>
+            </div>
+
+            <!-- Result Display -->
+            {% if prediction is defined %}
+            <div class="result" id="resultBox">
+                <div class="result-label">Prediction Result</div>
+                <div class="score">{{ prediction }}</div>
+                <div class="score-label">Performance Index (0-100)</div>
+                {% set message_class = 
+                    'message-excellent' if prediction >= 90 else
+                    'message-very-good' if prediction >= 75 else
+                    'message-good' if prediction >= 60 else
+                    'message-average' if prediction >= 40 else
+                    'message-needs-improvement'
+                %}
+                <div class="message {{ message_class }}">
+                    {% if prediction >= 90 %}🌟{% elif prediction >= 75 %}💪{% elif prediction >= 60 %}👍{% elif prediction >= 40 %}📊{% else %}⚠️{% endif %}
+                    {{ message }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Error Display -->
+            {% if error %}
+            <div class="error">
+                <span class="error-icon">⚠️</span>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form action="/predict" method="POST" id="predictionForm" novalidate>
+                <div class="form-group">
+                    <label for="hours_studied">
+                        <span class="label-icon">📚</span> Hours Studied
+                    </label>
+                    <input type="number" id="hours_studied" name="hours_studied"
+                           min="0" max="24" step="0.5"
+                           placeholder="e.g., 5.5"
+                           value="{{ hours_studied if hours_studied is not none else '' }}"
+                           required>
+                    <div class="input-hint">
+                        <span>0</span>
+                        <span>Optimal: 6-8 hours</span>
+                        <span>24</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="previous_scores">
+                        <span class="label-icon">📊</span> Previous Scores
+                    </label>
+                    <input type="number" id="previous_scores" name="previous_scores"
+                           min="0" max="100" step="1"
+                           placeholder="e.g., 85"
+                           value="{{ previous_scores if previous_scores is not none else '' }}"
+                           required>
+                    <div class="input-hint">
+                        <span>0</span>
+                        <span>Target: 70+</span>
+                        <span>100</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="extracurricular">
+                        <span class="label-icon">🎯</span> Extracurricular Activities
+                    </label>
+                    <select id="extracurricular" name="extracurricular" required>
+                        <option value="">Select an option</option>
+                        <option value="Yes" {% if extracurricular == "Yes" %}selected{% endif %}>✅ Yes</option>
+                        <option value="No" {% if extracurricular == "No" %}selected{% endif %}>❌ No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sleep_hours">
+                        <span class="label-icon">😴</span> Sleep Hours
+                    </label>
+                    <input type="number" id="sleep_hours" name="sleep_hours"
+                           min="0" max="24" step="0.5"
+                           placeholder="e.g., 7.5"
+                           value="{{ sleep_hours if sleep_hours is not none else '' }}"
+                           required>
+                    <div class="input-hint">
+                        <span>0</span>
+                        <span>Recommended: 7-9 hours</span>
+                        <span>24</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sample_papers">
+                        <span class="label-icon">📝</span> Sample Papers Practiced
+                    </label>
+                    <input type="number" id="sample_papers" name="sample_papers"
+                           min="0" max="20" step="1"
+                           placeholder="e.g., 5"
+                           value="{{ sample_papers if sample_papers is not none else '' }}"
+                           required>
+                    <div class="input-hint">
+                        <span>0</span>
+                        <span>Practice makes perfect</span>
+                        <span>20</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span class="btn-text">🚀 Predict Performance</span>
+                    <span class="btn-loader"></span>
+                </button>
+            </form>
+
+            <div class="history-link">
+                <a href="{{ url_for('history') }}">
+                    View past predictions
+                    <span class="arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // PARTICLES BACKGROUND
+        // ========================================
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = 2 + Math.random() * 4;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = 12 + Math.random() * 10 + 's';
+                container.appendChild(particle);
+            }
+        })();
+
+        // ========================================
+        // FORM VALIDATION & LOADING
+        // ========================================
+        const form = document.getElementById('predictionForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
+            const fields = [
+                { id: 'hours_studied', min: 0, max: 24, label: 'Hours Studied' },
+                { id: 'previous_scores', min: 0, max: 100, label: 'Previous Scores' },
+                { id: 'sleep_hours', min: 0, max: 24, label: 'Sleep Hours' },
+                { id: 'sample_papers', min: 0, max: 20, label: 'Sample Papers' },
+            ];
+
+            for (const field of fields) {
+                const input = document.getElementById(field.id);
+                const value = parseFloat(input.value);
+
+                if (input.value.trim() === '' || isNaN(value)) {
+                    showError(`${field.label} is required.`);
+                    e.preventDefault();
+                    input.focus();
+                    input.style.borderColor = '#E74C3C';
+                    setTimeout(() => input.style.borderColor = '', 2000);
+                    return;
+                }
+
+                if (value < field.min || value > field.max) {
+                    showError(`${field.label} must be between ${field.min} and ${field.max}.`);
+                    e.preventDefault();
+                    input.focus();
+                    input.style.borderColor = '#E74C3C';
+                    setTimeout(() => input.style.borderColor = '', 2000);
+                    return;
+                }
+            }
+
+            const extracurricular = document.getElementById('extracurricular').value;
+            if (!extracurricular) {
+                showError('Please select an option for Extracurricular Activities.');
+                e.preventDefault();
+                document.getElementById('extracurricular').focus();
+                document.getElementById('extracurricular').style.borderColor = '#E74C3C';
+                setTimeout(() => document.getElementById('extracurricular').style.borderColor = '', 2000);
+                return;
+            }
+
+            // Show loading state
+            submitBtn.classList.add('loading');
+        });
+
+        function showError(message) {
+            const existingError = document.querySelector('.error');
+            if (existingError) existingError.remove();
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<span class="error-icon">⚠️</span> ${message}`;
+            form.insertBefore(errorDiv, form.firstChild);
+        }
+
+        // ========================================
+        // REAL-TIME INPUT HIGHLIGHTING
+        // ========================================
+        document.querySelectorAll('.form-group input, .form-group select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.form-group').style.transform = 'scale(1.01)';
+                this.closest('.form-group').style.transition = 'transform 0.2s';
+            });
+            input.addEventListener('blur', function() {
+                this.closest('.form-group').style.transform = 'scale(1)';
+            });
+        });
+
+        // ========================================
+        // RESULT SCROLL ANIMATION
+        // ========================================
+        const resultBox = document.getElementById('resultBox');
+        if (resultBox) {
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ========================================
+        // KEYBOARD SHORTCUT: Ctrl+Enter to submit
+        // ========================================
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        console.log('🎓 Student Performance Predictor loaded!');
+    </script>
+
+</body>
+</html>
