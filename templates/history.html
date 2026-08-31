@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prediction History</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container history-container">
+      <div class="card">
+        <div class="header">
+          <div class="header-icon">📜</div>
+          <h1>Prediction History</h1>
+          <p>Your last {{ predictions|length }} predictions</p>
+        </div>
+
+        {% if predictions|length > 0 %}
+        <!-- Stats -->
+        <div class="history-stats">
+          <div class="history-stat">
+            <div class="stat-number">{{ predictions|length }}</div>
+            <div class="stat-label">Total Predictions</div>
+          </div>
+          <div class="history-stat">
+            <div class="stat-number">
+              {% set avg = predictions|map(attribute='prediction')|sum /
+              predictions|length %} {{ "%.1f"|format(avg) }}
+            </div>
+            <div class="stat-label">Average Score</div>
+          </div>
+          <div class="history-stat">
+            <div class="stat-number">
+              {% set max_score = predictions|map(attribute='prediction')|max %}
+              {{ max_score }}
+            </div>
+            <div class="stat-label">Best Score</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Table -->
+        {% if predictions|length == 0 %}
+        <div class="empty-state">
+          <div class="empty-icon">🔮</div>
+          <h3>No predictions yet</h3>
+          <p>Make your first prediction to see history here</p>
+        </div>
+        {% else %}
+        <div class="table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>🕐 Time</th>
+                <th>📚 Hours</th>
+                <th>📊 Prev. Score</th>
+                <th>🎯 Extra.</th>
+                <th>😴 Sleep</th>
+                <th>📝 Papers</th>
+                <th>🎯 Prediction</th>
+                <th>📈 Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in predictions %} {% set status_class =
+              'status-excellent' if row['prediction'] >= 90 else
+              'status-very-good' if row['prediction'] >= 75 else 'status-good'
+              if row['prediction'] >= 60 else 'status-average' if
+              row['prediction'] >= 40 else 'status-needs-improvement' %}
+              <tr>
+                <td>{{ row["created_at"] }}</td>
+                <td>{{ row["hours_studied"] }}</td>
+                <td>{{ row["previous_scores"] }}</td>
+                <td>{{ row["extracurricular"] }}</td>
+                <td>{{ row["sleep_hours"] }}</td>
+                <td>{{ row["sample_papers"] }}</td>
+                <td><strong>{{ row["prediction"] }}</strong></td>
+                <td>
+                  <span class="status-badge {{ status_class }}"
+                    >{{ row["message"] }}</span
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+
+        <div class="history-link">
+          <a href="{{ url_for('home') }}">
+            <span class="arrow">←</span>
+            Back to prediction form
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Particles background
+      (function createParticles() {
+        const container = document.getElementById("particles");
+        for (let i = 0; i < 30; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+          const size = 2 + Math.random() * 4;
+          particle.style.width = size + "px";
+          particle.style.height = size + "px";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+          particle.style.animationDelay = Math.random() * 15 + "s";
+          particle.style.animationDuration = 12 + Math.random() * 10 + "s";
+          container.appendChild(particle);
+        }
+      })();
+
+      // Row hover effect
+      document.querySelectorAll(".history-table tbody tr").forEach((row) => {
+        row.addEventListener("mouseenter", function () {
+          this.style.transition = "background 0.2s";
+        });
+      });
+
+      console.log("📜 History page loaded");
+    </script>
+  </body>
+</html>
