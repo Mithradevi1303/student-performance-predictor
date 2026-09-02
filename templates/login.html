@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Student Performance Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="header-icon">🔐</div>
+                <h1>Welcome Back</h1>
+                <p>Login to access your predictions</p>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="username">
+                        <span class="label-icon">👤</span> Username
+                    </label>
+                    <input type="text" id="username" name="username" 
+                           placeholder="Enter your username" required autofocus />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <span class="label-icon">🔑</span> Password
+                    </label>
+                    <input type="password" id="password" name="password" 
+                           placeholder="Enter your password" required />
+                </div>
+
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+
+            <div class="auth-links">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .auth-links a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .auth-links a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+
+        .flash-success {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ECC71;
+            border-color: rgba(46, 204, 113, 0.2);
+        }
+
+        .flash-danger {
+            background: rgba(231, 76, 60, 0.15);
+            color: #E74C3C;
+            border-color: rgba(231, 76, 60, 0.2);
+        }
+
+        .flash-info {
+            background: rgba(52, 152, 219, 0.15);
+            color: #5DADE2;
+            border-color: rgba(52, 152, 219, 0.2);
+        }
+    </style>
+
+    <script>
+        (function createParticles() {
+            const container = document.getElementById("particles");
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement("div");
+                particle.className = "particle";
+                const size = 2 + Math.random() * 4;
+                particle.style.width = size + "px";
+                particle.style.height = size + "px";
+                particle.style.left = Math.random() * 100 + "%";
+                particle.style.top = Math.random() * 100 + "%";
+                particle.style.animationDelay = Math.random() * 15 + "s";
+                particle.style.animationDuration = 12 + Math.random() * 10 + "s";
+                container.appendChild(particle);
+            }
+        })();
+    </script>
+</body>
+
+</html>

@@ -2,3 +2,6 @@ flask
 pandas
 scikit-learn
 gunicorn
+flask-login
+flask-bcrypt
+email-validator
